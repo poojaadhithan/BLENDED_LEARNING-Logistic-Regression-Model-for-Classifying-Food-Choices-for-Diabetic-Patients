@@ -9,94 +9,79 @@ To implement a logistic regression model to classify food items for diabetic pat
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. Import the required libraries and load the dataset using pandas.read_csv().
-2. Preprocess the data by converting categorical variables using get_dummies() and separating the dataset into features (X) and target variable (y).
-3. Split the dataset into training and testing sets using train_test_split() and apply StandardScaler for feature scaling.
-4. Build regression models (Ridge, Lasso, and ElasticNet) using a pipeline with polynomial features and train the models using the training data.
-5. Predict the test data, evaluate the models using metrics like MSE, MAE, and R² score, and visualize the results using bar charts.
+1. Import the required libraries and load the dataset.
+2. Separate the input features and target variable.
+3. Split the dataset into training and testing data.
+4. Train the Logistic Regression model using the training data.
+5. Predict the results and evaluate the model using accuracy and confusion matrix.
 
 ## Program:
 ```
+
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Ridge, Lasso,ElasticNet
-from sklearn.preprocessing import PolynomialFeatures,StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-
-data = pd.read_csv("encoded_car_data (1).csv")
-data.head()
-df = pd.get_dummies(data, drop_first=True)
-
-X = data.drop('price',axis=1)
-y = data['price']
-
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2, random_state = 42)
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder,MinMaxScaler
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,confusion_matrix,classification_report
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-y = scaler.fit_transform(y.values.reshape(-1,1))
+df=pd.read_csv("food_items (1).csv")
 
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2, random_state = 42)
+print("Dataset Overview")
+print(df.head())
+print("\ndatset Info")
+print(df.info())
 
-models = {
-    'Ridge': Ridge(alpha=1.0),
-    'Lasso': Lasso(alpha=1.0),
-    'ElasticNet': ElasticNet(alpha=1.0, l1_ratio=0.5)
-}
+X_raw=df.iloc[:, :-1]
+y_raw=df.iloc[:, -1:]
+X_raw
 
-results ={}
+scaler=MinMaxScaler()
+X=scaler.fit_transform(X_raw)
 
-for name,model in models.items():
-    pipeline = Pipeline([
-        ('poly', PolynomialFeatures(degree=2)),
-        ('regressor', model)
-    ])
+label_encoder=LabelEncoder()
+y=label_encoder.fit_transform(y_raw.values.ravel())
+X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,stratify=y,random_state=123)
 
-pipeline.fit(X_train,y_train)
-pred = pipeline.predict(X_test)
+penalty='l2'
+multi_class='multnomial'
+solver='lbfgs'
+max_iter=1000
 
-mse = mean_squared_error(y_test, pred)
-mae = mean_absolute_error(y_test, pred)
-r2 = r2_score(y_test,pred)
+model = LogisticRegression(max_iter=2000)  # Increased max_iter for convergence
+model.fit(X_train, y_train)
 
-results[name] = {'MSE' : mse, 'MAE' : mae, 'Rscore': r2}
 
-print("Name: POOJA A")
-print("Reg. No: 212225040300")
-for model_name, metrics in results.items():
-    print(f"{model_name} - \nMean Squared Error: {metrics['MSE']:.2f}, \nMean Absolute Error: {metrics['MAE']:.2f}, \nR Squared Score: {metrics['Rscore']:.2f}")
+y_pred = model.predict(X_test)
 
-results_df = pd.DataFrame(results).T
-results_df.reset_index(inplace=True)
-results_df.rename(columns={'index': 'Model'},inplace=True)
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
 
-plt.figure(figsize=(12,5))
+print("Model Accuracy:", accuracy)
+print("Confusion Matrix:\n", conf_matrix)
+print("Classification Report:\n", class_report)
 
-plt.subplot(1,2,1)
-sns.barplot(x='Model',y='MSE',data=results_df, palette='viridis')
-plt.title('Mean Squared Error (MSE)')
-plt.ylabel('MSE')
-plt.xticks(rotation=45)
 
-plt.subplot(1,2,2)
-sns.barplot(x='Model',y='Rscore', data=results_df,palette='viridis')
-plt.title('R Squared Score')
-plt.ylabel('R Squared Score')
-plt.xticks(rotation=45)
-
-plt.tight_layout()
+plt.figure(figsize=(5, 4))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='coolwarm', cbar=False, 
+            xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
 plt.show()
 
 ```
 
 ## Output:
-<img width="333" height="133" alt="image" src="https://github.com/user-attachments/assets/ffbff06b-6d78-49e9-aab8-e4479e6caf47" />
-<img width="1363" height="536" alt="image" src="https://github.com/user-attachments/assets/107bbd0c-7fec-4575-a629-2b3df6842377" />
+<img width="531" height="765" alt="image" src="https://github.com/user-attachments/assets/d0718018-ed04-4768-b7b8-8d1724092e56" />
+<img width="672" height="395" alt="image" src="https://github.com/user-attachments/assets/e520dd9b-1bf4-4664-82fd-049485c0cbc8" />
+
+
 
 
 
